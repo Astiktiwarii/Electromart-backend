@@ -1,65 +1,72 @@
-require('dotenv').config();
-
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+const path = require('path');
+require('dotenv').config();
 
 const app = express();
 
-// Middlewares
+// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
-// Transporter Setup (Fast Gmail SMTP)
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // SSL Connection
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// Serve static frontend files from 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Email Handler Function
 const handleSendMail = async (req, res) => {
-  const { email, total } = req.body;
-  const toMail = email || req.body.toEmail || process.env.EMAIL_USER;
+    const { email, total } = req.body;
 
-  const mailOptions = {
-    from: `"ElectroMart" <${process.env.EMAIL_USER}>`,
-    to: toMail,
-    subject: 'Order Confirmation - ElectroMart',
-    text: `Aapka order successful ho gaya hai! Total Amount: ₹${total || 59999}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-        <h2 style="color: #007bff;">Order Confirmation - ElectroMart</h2>
-        <p>Thank you for shopping with us!</p>
-        <p><strong>Total Amount Paid:</strong> ₹${total || 59999}</p>
-        <p>Your order receipt is confirmed.</p>
-      </div>
-    `
-  };
+    if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+    }
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully to:', toMail);
-    res.status(200).json({ success: true, message: 'Email sent successfully!' });
-  } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        const mailOptions = {
+            from: `"ElectroMart" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: '⚡ ElectroMart Order Confirmation & Receipt',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2>Thank you for your order! ⚡</h2>
+                    <p>Your order has been placed successfully.</p>
+                    <h3>Total Amount Paid: ₹${total || 0}</h3>
+                    <p>We will notify you once your items are dispatched.</p>
+                    <br>
+                    <p>Regards,<br><strong>ElectroMart Team</strong></p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        return res.status(200).json({ message: 'Receipt sent successfully!' });
+    } catch (error) {
+        console.error('Error sending email:', error);
+        return res.status(500).json({ error: 'Failed to send receipt' });
+    }
 };
 
-// Route 1 (Dono URLs Support Karne Ke Liye)
+// Route 1
 app.post('/send-email', handleSendMail);
 
 // Route 2
 app.post('/send-receipt', handleSendMail);
 
+// Fallback route to serve index.html for all UI requests
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Server Listen
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}...`);
+    console.log(`Server is running on port ${PORT}...`);
 });
