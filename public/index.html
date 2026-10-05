@@ -1,78 +1,855 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ElectroMart - Order Confirmation</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { background-color: #f4f6f9; padding: 30px; }
-    .card { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    h2 { color: #0d6efd; margin-bottom: 15px; }
-    .item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-    .total { text-align: right; font-weight: bold; font-size: 1.2rem; margin: 15px 0; }
-    input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; }
-    button { width: 100%; padding: 12px; background: #198754; color: white; border: none; border-radius: 5px; font-size: 1rem; font-weight: bold; cursor: pointer; }
-    button:disabled { background: #8fcaaa; cursor: not-allowed; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ElectroMart - Electronics Store</title>
+
+<style>
+
+/* ---------- BASIC ---------- */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f5f7fb;
+    color:#222;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+a{
+    text-decoration:none;
+}
+
+/* ---------- TOP BAR ---------- */
+
+.topbar{
+    background:#111827;
+    color:white;
+    text-align:center;
+    padding:10px;
+    font-size:14px;
+}
+
+/* ---------- NAVBAR ---------- */
+
+.navbar{
+    background:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 7%;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+    position:sticky;
+    top:0;
+    z-index:1000;
+}
+
+.logo{
+    font-size:25px;
+    font-weight:bold;
+    color:#2563eb;
+    cursor:pointer;
+}
+
+.logo span{
+    color:#111827;
+}
+
+.nav-links{
+    display:flex;
+    gap:25px;
+    list-style:none;
+}
+
+.nav-links a{
+    color:#333;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.nav-links a:hover{
+    color:#2563eb;
+}
+
+.cart-button,
+.login-button{
+    background:#2563eb;
+    color:white;
+    padding:10px 16px;
+    border-radius:7px;
+    cursor:pointer;
+    border:none;
+    font-weight:bold;
+}
+
+.cart-button:hover,
+.login-button:hover{
+    background:#1d4ed8;
+}
+
+/* ---------- PAGE ---------- */
+
+.page{
+    display:none;
+    min-height:80vh;
+}
+
+.page.active{
+    display:block;
+}
+
+/* ---------- HOME ---------- */
+
+.hero{
+    min-height:520px;
+    display:flex;
+    align-items:center;
+    padding:50px 7%;
+    background:linear-gradient(120deg,#dbeafe,#eff6ff);
+}
+
+.hero-text{
+    width:50%;
+}
+
+.hero-text h1{
+    font-size:52px;
+    color:#111827;
+    margin-bottom:20px;
+}
+
+.hero-text h1 span{
+    color:#2563eb;
+}
+
+.hero-text p{
+    font-size:18px;
+    line-height:1.7;
+    margin-bottom:25px;
+    color:#4b5563;
+}
+
+.shop-button{
+    background:#2563eb;
+    color:white;
+    padding:14px 25px;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.shop-button:hover{
+    background:#1d4ed8;
+}
+
+.hero-image{
+    width:50%;
+    text-align:center;
+}
+
+.hero-image img{
+    width:90%;
+    max-width:550px;
+    border-radius:20px;
+}
+
+/* ---------- FEATURES ---------- */
+
+.features{
+    display:flex;
+    justify-content:center;
+    gap:25px;
+    padding:40px 7%;
+    background:white;
+}
+
+.feature{
+    text-align:center;
+    padding:25px;
+    width:220px;
+}
+
+.feature-icon{
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+.feature h3{
+    margin-bottom:8px;
+}
+
+/* ---------- SECTION ---------- */
+
+.section{
+    padding:60px 7%;
+}
+
+.section-title{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.section-title h2{
+    font-size:35px;
+    margin-bottom:10px;
+}
+
+.section-title p{
+    color:#6b7280;
+}
+
+/* ---------- PRODUCTS ---------- */
+
+.search-box{
+    width:100%;
+    max-width:600px;
+    margin:0 auto 35px;
+    display:flex;
+}
+
+.search-box input{
+    width:100%;
+    padding:15px;
+    border:1px solid #ccc;
+    border-radius:8px 0 0 8px;
+    font-size:16px;
+}
+
+.search-box button{
+    padding:15px 20px;
+    border:none;
+    background:#2563eb;
+    color:white;
+    border-radius:0 8px 8px 0;
+    cursor:pointer;
+}
+
+.products{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:25px;
+}
+
+.product{
+    background:white;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 3px 12px rgba(0,0,0,0.08);
+    transition:0.3s;
+}
+
+.product:hover{
+    transform:translateY(-5px);
+}
+
+.product img{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+}
+
+.product-info{
+    padding:18px;
+}
+
+.product-info h3{
+    margin-bottom:10px;
+}
+
+.rating{
+    color:#f59e0b;
+    margin-bottom:10px;
+}
+
+.price{
+    font-size:21px;
+    font-weight:bold;
+    color:#2563eb;
+    margin-bottom:15px;
+}
+
+.old-price{
+    color:#999;
+    text-decoration:line-through;
+    font-size:14px;
+    margin-left:8px;
+}
+
+.add-button{
+    width:100%;
+    padding:11px;
+    background:#111827;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.add-button:hover{
+    background:#2563eb;
+}
+
+/* ---------- ABOUT ---------- */
+
+.about-box{
+    display:flex;
+    align-items:center;
+    gap:50px;
+}
+
+.about-image{
+    width:50%;
+}
+
+.about-image img{
+    width:100%;
+    border-radius:15px;
+}
+
+.about-text{
+    width:50%;
+}
+
+.about-text h2{
+    font-size:35px;
+    margin-bottom:20px;
+}
+
+.about-text p{
+    line-height:1.8;
+    color:#555;
+    margin-bottom:15px;
+}
+
+.about-list{
+    list-style:none;
+    line-height:2;
+}
+
+/* ---------- LOGIN / CHECKOUT ---------- */
+
+.login-container{
+    max-width:450px;
+    margin:70px auto;
+    background:white;
+    padding:35px;
+    border-radius:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.1);
+}
+
+.login-container h2{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.form-group{
+    margin-bottom:18px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:7px;
+    font-weight:bold;
+}
+
+.form-group input,
+.form-group textarea{
+    width:100%;
+    padding:13px;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+.form-group textarea{
+    height:120px;
+    resize:none;
+}
+
+.submit-button{
+    width:100%;
+    padding:13px;
+    border:none;
+    background:#2563eb;
+    color:white;
+    border-radius:6px;
+    font-size:16px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.submit-button:hover{
+    background:#1d4ed8;
+}
+
+/* ---------- CONTACT ---------- */
+
+.contact-box{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:40px;
+}
+
+.contact-info{
+    background:#111827;
+    color:white;
+    padding:35px;
+    border-radius:12px;
+}
+
+.contact-info h2{
+    margin-bottom:25px;
+}
+
+.contact-item{
+    margin:20px 0;
+    font-size:16px;
+}
+
+/* ---------- CART ---------- */
+
+.cart-container{
+    max-width:800px;
+    margin:50px auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 3px 15px rgba(0,0,0,0.1);
+}
+
+.cart-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 0;
+    border-bottom:1px solid #ddd;
+}
+
+.remove-button{
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:7px 12px;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+.cart-total{
+    text-align:right;
+    font-size:22px;
+    font-weight:bold;
+    margin-top:25px;
+}
+
+.checkout-button{
+    width:100%;
+    padding:14px;
+    background:#10b981;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:20px;
+}
+
+.checkout-button:hover{
+    background:#059669;
+}
+
+/* ---------- FOOTER ---------- */
+
+footer{
+    background:#111827;
+    color:white;
+    padding:40px 7%;
+    text-align:center;
+    margin-top:50px;
+}
+
+footer h2{
+    margin-bottom:10px;
+}
+
+footer p{
+    color:#d1d5db;
+    margin:7px;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media(max-width:900px){
+
+    .products{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .hero{
+        flex-direction:column;
+        text-align:center;
+    }
+
+    .hero-text,
+    .hero-image{
+        width:100%;
+    }
+
+    .hero-text h1{
+        font-size:40px;
+    }
+
+    .about-box{
+        flex-direction:column;
+    }
+
+    .about-image,
+    .about-text{
+        width:100%;
+    }
+
+    .contact-box{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:600px){
+
+    .navbar{
+        flex-direction:column;
+        gap:15px;
+    }
+
+    .nav-links{
+        gap:12px;
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+
+    .products{
+        grid-template-columns:1fr;
+    }
+
+    .features{
+        flex-direction:column;
+        align-items:center;
+    }
+
+    .hero-text h1{
+        font-size:32px;
+    }
+}
+
+</style>
 </head>
+
+
 <body>
 
-  <div class="card">
-    <h2>ElectroMart ⚡</h2>
-    
-    <div class="item">
-      <span>Performance Laptop</span>
-      <span>₹59,999</span>
+<!-- TOP BAR -->
+<div class="topbar">
+    ⚡ Special Electronics Sale – Up to 40% Off ⚡
+</div>
+
+<!-- NAVIGATION -->
+<nav class="navbar">
+
+    <div class="logo" onclick="showPage('home')">
+        Electro<span>Mart</span> ⚡
     </div>
 
-    <div class="total">Total: ₹59,999</div>
+    <ul class="nav-links">
+        <li><a onclick="showPage('home')">🏠 Home</a></li>
+        <li><a onclick="showPage('products')">🛍️ Products</a></li>
+        <li><a onclick="showPage('about')">ℹ️ About</a></li>
+        <li><a onclick="showPage('contact')">📞 Contact</a></li>
+        <li><a onclick="showPage('login')">👤 Login</a></li>
+        <li>
+            <button class="cart-button" onclick="showPage('cart')">
+                🛒 Cart (<span id="cartCount">0</span>)
+            </button>
+        </li>
+    </ul>
 
-    <label for="userEmail">Enter your email for invoice:</label>
-    <input type="email" id="userEmail" value="bhavishywanicricket@gmail.com" placeholder="Email enter karein..." required />
+</nav>
 
-    <button type="button" id="placeOrderBtn" onclick="sendOrderReceipt()">Place Order & Send Receipt ⚡</button>
-  </div>
 
-  <script>
-    async function sendOrderReceipt() {
-      const emailInput = document.getElementById('userEmail').value;
-      const btn = document.getElementById('placeOrderBtn');
+<!-- ================= HOME PAGE ================= -->
+<section id="home" class="page active">
 
-      if (!emailInput) {
-        alert("Kripya email enter karein!");
-        return;
-      }
+    <div class="hero">
+        <div class="hero-text">
+            <h1>Upgrade Your <span>Digital Life</span></h1>
+            <p>
+                Discover the latest smartphones, laptops,
+                headphones, smart watches, cameras and other
+                electronics at amazing prices.
+            </p>
+            <button class="shop-button" onclick="showPage('products')">
+                🛍️ Shop Now
+            </button>
+        </div>
 
-      btn.innerText = "Sending Email...";
-      btn.disabled = true;
+        <div class="hero-image">
+            <img src="https://images.unsplash.com/photo-1468495244123-6c6c332eeece?auto=format&fit=crop&w=900&q=80" alt="Electronics Hero">
+        </div>
+    </div>
 
-      try {
-        const response = await fetch('https://electromart-backend-06rr.onrender.com/send-receipt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: emailInput,
-            total: 59999
-          })
-        });
+    <!-- FEATURES -->
+    <div class="features">
+        <div class="feature">
+            <div class="feature-icon">🚚</div>
+            <h3>Fast Delivery</h3>
+            <p>Quick and reliable delivery.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">🔒</div>
+            <h3>Secure Payment</h3>
+            <p>Safe shopping experience.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">⭐</div>
+            <h3>Best Quality</h3>
+            <p>Quality electronics products.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">💬</div>
+            <h3>24/7 Support</h3>
+            <p>Customer support anytime.</p>
+        </div>
+    </div>
 
-        const data = await response.json();
+    <!-- HOME PRODUCTS -->
+    <div class="section">
+        <div class="section-title">
+            <h2>Popular Electronics</h2>
+            <p>Explore our popular products</p>
+        </div>
 
-        if (response.ok && data.success) {
-          alert("Success! Order Receipt Email Par Bhej Di Gayi Hai.");
-        } else {
-          alert("Error: " + (data.error || "Failed to send email"));
-        }
-      } catch (err) {
-        console.error("Fetch Error:", err);
-        alert("Server se connection nahi ho pa raha hai.");
-      } finally {
-        btn.innerText = "Place Order & Send Receipt ⚡";
-        btn.disabled = false;
-      }
-    }
-  </script>
+        <div class="products">
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Premium Smartphone</h3>
+                    <div class="rating">★★★★★</div>
+                    <div class="price">₹29,999</div>
+                    <button class="add-button" onclick="addToCart('Premium Smartphone',29999)">Add to Cart</button>
+                </div>
+            </div>
 
-</body>
-</html>
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Performance Laptop</h3>
+                    <div class="rating">★★★★★</div>
+                    <div class="price">₹59,999</div>
+                    <button class="add-button" onclick="addToCart('Performance Laptop',59999)">Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Wireless Headphones</h3>
+                    <div class="rating">★★★★☆</div>
+                    <div class="price">₹3,999</div>
+                    <button class="add-button" onclick="addToCart('Wireless Headphones',3999)">Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Smart Watch</h3>
+                    <div class="rating">★★★★★</div>
+                    <div class="price">₹4,999</div>
+                    <button class="add-button" onclick="addToCart('Smart Watch',4999)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- ================= PRODUCTS PAGE ================= -->
+<section id="products" class="page">
+
+    <div class="section">
+        <div class="section-title">
+            <h2>🛍️ Our Products</h2>
+            <p>Choose your favourite electronic products</p>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔎 Search product..." onkeyup="searchProducts()">
+            <button onclick="searchProducts()">Search</button>
+        </div>
+
+        <div class="products" id="productList">
+
+            <!-- PRODUCT 1 -->
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Premium Smartphone</h3>
+                    <div class="rating">★★★★★</div>
+                    <div class="price">₹29,999 <span class="old-price">₹35,999</span></div>
+                    <button class="add-button" onclick="addToCart('Premium Smartphone',29999)">🛒 Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- PRODUCT 2 -->
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Performance Laptop</h3>
+                    <div class="rating">★★★★★</div>
+                    <div class="price">₹59,999 <span class="old-price">₹69,999</span></div>
+                    <button class="add-button" onclick="addToCart('Performance Laptop',59999)">🛒 Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- PRODUCT 3 -->
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Wireless Headphones</h3>
+                    <div class="rating">★★★★☆</div>
+                    <div class="price">₹3,999 <span class="old-price">₹5,999</span></div>
+                    <button class="add-button" onclick="addToCart('Wireless Headphones',3999)">🛒 Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- PRODUCT 4 -->
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Smart Watch</h3>
+                    <div class="rating">★★★★★</div>
+                    <div class="price">₹4,999 <span class="old-price">₹6,999</span></div>
+                    <button class="add-button" onclick="addToCart('Smart Watch',4999)">🛒 Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- PRODUCT 5 -->
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>4K Smart TV</h3>
+                    <div class="rating">★★★★★</div>
+                    <div class="price">₹39,999 <span class="old-price">₹49,999</span></div>
+                    <button class="add-button" onclick="addToCart('4K Smart TV',39999)">🛒 Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- PRODUCT 6 -->
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Digital Camera</h3>
+                    <div class="rating">★★★★☆</div>
+                    <div class="price">₹44,999 <span class="old-price">₹54,999</span></div>
+                    <button class="add-button" onclick="addToCart('Digital Camera',44999)">🛒 Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- PRODUCT 7 -->
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Wireless Earbuds</h3>
+                    <div class="rating">★★★★★</div>
+                    <div class="price">₹2,499 <span class="old-price">₹3,999</span></div>
+                    <button class="add-button" onclick="addToCart('Wireless Earbuds',2499)">🛒 Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- PRODUCT 8 -->
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=600&q=80">
+                <div class="product-info">
+                    <h3>Business Laptop</h3>
+                    <div class="rating">★★★★★</div>
+                    <div class="price">₹69,999 <span class="old-price">₹79,999</span></div>
+                    <button class="add-button" onclick="addToCart('Business Laptop',69999)">🛒 Add to Cart</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</section>
+
+
+<!-- ================= ABOUT PAGE ================= -->
+<section id="about" class="page">
+
+    <div class="section">
+        <div class="about-box">
+            <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=900&q=80">
+            </div>
+
+            <div class="about-text">
+                <h2>About ElectroMart</h2>
+                <p>
+                    ElectroMart is a modern online electronics
+                    store created to provide customers with
+                    quality electronic products at affordable prices.
+                </p>
+                <p>
+                    Our website provides smartphones, laptops,
+                    headphones, smart watches, televisions,
+                    cameras and many other electronics.
+                </p>
+                <ul class="about-list">
+                    <li>✔ Quality Products</li>
+                    <li>✔ Affordable Prices</li>
+                    <li>✔ Easy Shopping</li>
+                    <li>✔ Fast Delivery</li>
+                    <li>✔ Customer Support</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- ================= CONTACT PAGE ================= -->
+<section id="contact" class="page">
+
+    <div class="section">
+        <div class="contact-box">
+            <div class="contact-info">
+                <h2>Get In Touch</h2>
+                <div class="contact-item">📍 Location: New Delhi, India</div>
+                <div class="contact-item">📞 Phone: +91 98765 43210</div>
+                <div class="contact-item">✉️ Email: support@electromart.com</div>
+                <div class="contact-item">⏰ Hours: Mon - Sat (9:00 AM - 8:00 PM)</div>
+            </div>
+
+            <div class="login-container" style="margin:0;">
+                <h2>Send Us a Message</h2>
+                <form onsubmit="alert('Thank you for contacting us!'); return false;">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" required placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group"
