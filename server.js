@@ -7,66 +7,74 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// Serve static frontend files from 'public' folder
+// Static Files Serve Karein (public folder se index.html serve hoga)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Email Handler Function
-const handleSendMail = async (req, res) => {
+// Email Sending Transporter (Nodemailer)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+// Checkout Email Receipt API Endpoint
+app.post('/send-receipt', async (req, res) => {
     const { email, total } = req.body;
 
-    if (!email) {
-        return res.status(400).json({ error: 'Email is required' });
+    if (!email || !total) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email aur Total Amount dono required hain!' 
+        });
     }
+
+    const mailOptions = {
+        from: `"ElectroMart" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Your Order Receipt - ElectroMart ⚡',
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px; margin: auto;">
+                <h2 style="color: #2563eb; text-align: center;">ElectroMart ⚡</h2>
+                <hr style="border: none; border-top: 1px solid #eeeeee;">
+                <p>Hello,</p>
+                <p>Thank you for shopping with us! Your order has been placed successfully.</p>
+                <div style="background: #f5f7fb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: #111827;">Total Paid: ₹${total}</p>
+                </div>
+                <p style="color: #555; font-size: 14px;">If you have any questions, reply to this email.</p>
+                <p style="color: #888; font-size: 12px; text-align: center; margin-top: 20px;">&copy; 2026 ElectroMart. All rights reserved.</p>
+            </div>
+        `
+    };
 
     try {
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        });
-
-        const mailOptions = {
-            from: `"ElectroMart" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: '⚡ ElectroMart Order Confirmation & Receipt',
-            html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-                    <h2>Thank you for your order! ⚡</h2>
-                    <p>Your order has been placed successfully.</p>
-                    <h3>Total Amount Paid: ₹${total || 0}</h3>
-                    <p>We will notify you once your items are dispatched.</p>
-                    <br>
-                    <p>Regards,<br><strong>ElectroMart Team</strong></p>
-                </div>
-            `
-        };
-
         await transporter.sendMail(mailOptions);
-        return res.status(200).json({ message: 'Receipt sent successfully!' });
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Receipt aapke email par bhej di gayi hai!' 
+        });
     } catch (error) {
-        console.error('Error sending email:', error);
-        return res.status(500).json({ error: 'Failed to send receipt' });
+        console.error('Email error:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Email bhejne me issue aaya.', 
+            error: error.message 
+        });
     }
-};
+});
 
-// Route 1
-app.post('/send-email', handleSendMail);
-
-// Route 2
-app.post('/send-receipt', handleSendMail);
-
-// Fallback route to serve index.html for all UI requests
+// Catch-all Route (Frontend Fallback)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Server Listen
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}...`);
+    console.log(`Server running on port ${PORT}`);
 });
