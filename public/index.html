@@ -724,10 +724,10 @@ footer p{
 
         try {
             const response = await fetch('https://electromart-backend-06rr.onrender.com/api/order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderData)
-            });
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orderData)
+});
 
             const result = await response.json();
             if (result.success) {
