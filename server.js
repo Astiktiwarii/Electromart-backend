@@ -1,60 +1,73 @@
 const express = require('express');
-const cors = require('cors');
 const nodemailer = require('nodemailer');
+const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
+
+// Base64 screenshot badi image ho sakti hai, isliye 10mb limit rakhi hai
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cors());
-app.use(express.json());
 
-// Direct Email Config
-const EMAIL_USER = "analysisprediction3@gmail.com";
-const EMAIL_PASS = "kijafhjqhlxwwxcu"; 
-
-// Email Transporter Configuration
+// Transporter Setup (Gmail SMTP)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
-// Order API Endpoint
-app.post('/api/orders', async (req, res) => {
-    const { customerName, customerEmail, shippingAddress, items, totalAmount } = req.body;
+// Order Processing API
+app.post('/api/order', async (req, res) => {
+    const { customer, items, totalPrice, paymentMethod, utr, screenshot } = req.body;
+    const itemListText = items.map(i => `- ${i.name}: ₹${i.price}`).join('\n');
 
-    if (!customerEmail || !customerName || !items || items.length === 0) {
-        return res.status(400).json({ success: false, message: "Sabhi Details Bharein!" });
-    }
-
-    // HTML Email Template
-    const itemsList = items.map(item => `<li>${item.title} - ₹${item.price}</li>`).join('');
-    const mailOptions = {
-        from: `"ElectroMart ⚡" <${EMAIL_USER}>`,
-        to: customerEmail,
-        subject: "Order Confirmation - ElectroMart",
-        html: `
-            <h2>Namaste ${customerName},</h2>
-            <p>Aapka Order Successfully Place Ho Gaya Hai!</p>
-            <h3>Items:</h3>
-            <ul>${itemsList}</ul>
-            <p><b>Total Amount:</b> ₹${totalAmount}</p>
-            <p><b>Address:</b> ${shippingAddress}</p>
-            <br>
-            <p>ElectroMart Par Shopping Karne Ke Liye Dhanyawad!</p>
-        `
+    // 1. Customer Confirmation Email
+    const customerMail = {
+        from: `ElectroMart <${process.env.EMAIL_USER}>`,
+        to: customer.email,
+        subject: 'Order Confirmation - ElectroMart ⚡',
+        text: `Hello ${customer.name},\n\nThank you for shopping at ElectroMart!\n\nOrder Details:\n${itemListText}\n\nTotal Price: ₹${totalPrice}\nPayment Method: ${paymentMethod}\nDelivery Address: ${customer.address}\n\nWe will process your order soon!`
     };
 
+    // 2. Admin Notification Mail Setup
+    let adminMailText = `New Order Received!\n\nCustomer Name: ${customer.name}\nEmail: ${customer.email}\nDelivery Address: ${customer.address}\nPayment Method: ${paymentMethod}\n`;
+    
+    if (utr) {
+        adminMailText += `UTR / Transaction ID: ${utr}\n`;
+    }
+    
+    adminMailText += `\nItems Ordered:\n${itemListText}\n\nTotal Amount: ₹${totalPrice}`;
+
+    const adminMail = {
+        from: `ElectroMart System <${process.env.EMAIL_USER}>`,
+        to: process.env.EMAIL_USER,
+        subject: `🚨 NEW ORDER (${paymentMethod}) from ${customer.name}`,
+        text: adminMailText,
+        attachments: []
+    };
+
+    // Screenshot Ko Email me Attachment ke roop me add kar rahe hain
+    if (screenshot) {
+        adminMail.attachments.push({
+            filename: `payment_proof_${Date.now()}.png`,
+            path: screenshot
+        });
+    }
+
     try {
-        await transporter.sendMail(mailOptions);
-        console.log("Email Successfully Sent To:", customerEmail);
-        res.json({ success: true, message: "Order Placed & Confirmation Sent!" });
+        await transporter.sendMail(customerMail);
+        await transporter.sendMail(adminMail);
+        res.status(200).json({ success: true, message: 'Order placed successfully!' });
     } catch (error) {
-        console.error("Email Error Details:", error);
-        res.status(500).json({ success: false, message: "Email Nahi Bhej Paya." });
+        console.error('Email error:', error);
+        res.status(500).json({ success: false, message: 'Failed to send confirmation emails' });
     }
 });
 
-app.listen(5000, () => {
-    console.log("Server Running on http://localhost:5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
