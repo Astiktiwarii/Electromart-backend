@@ -1,80 +1,60 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
 const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
+const nodemailer = require('nodemailer');
 
 const app = express();
-
-// Middleware
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
-// Static Files Serve Karein (public folder se index.html serve hoga)
-app.use(express.static(path.join(__dirname, 'public')));
+// Direct Email Config
+const EMAIL_USER = "analysisprediction3@gmail.com";
+const EMAIL_PASS = "kijafhjqhlxwwxcu"; 
 
-// Email Sending Transporter (Nodemailer)
+// Email Transporter Configuration
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: EMAIL_USER,
+        pass: EMAIL_PASS
     }
 });
 
-// Checkout Email Receipt API Endpoint
-app.post('/send-receipt', async (req, res) => {
-    const { email, total } = req.body;
+// Order API Endpoint
+app.post('/api/orders', async (req, res) => {
+    const { customerName, customerEmail, shippingAddress, items, totalAmount } = req.body;
 
-    if (!email || !total) {
-        return res.status(400).json({ 
-            success: false, 
-            message: 'Email aur Total Amount dono required hain!' 
-        });
+    if (!customerEmail || !customerName || !items || items.length === 0) {
+        return res.status(400).json({ success: false, message: "Sabhi Details Bharein!" });
     }
 
+    // HTML Email Template
+    const itemsList = items.map(item => `<li>${item.title} - ₹${item.price}</li>`).join('');
     const mailOptions = {
-        from: `"ElectroMart" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: 'Your Order Receipt - ElectroMart ⚡',
+        from: `"ElectroMart ⚡" <${EMAIL_USER}>`,
+        to: customerEmail,
+        subject: "Order Confirmation - ElectroMart",
         html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px; margin: auto;">
-                <h2 style="color: #2563eb; text-align: center;">ElectroMart ⚡</h2>
-                <hr style="border: none; border-top: 1px solid #eeeeee;">
-                <p>Hello,</p>
-                <p>Thank you for shopping with us! Your order has been placed successfully.</p>
-                <div style="background: #f5f7fb; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: #111827;">Total Paid: ₹${total}</p>
-                </div>
-                <p style="color: #555; font-size: 14px;">If you have any questions, reply to this email.</p>
-                <p style="color: #888; font-size: 12px; text-align: center; margin-top: 20px;">&copy; 2026 ElectroMart. All rights reserved.</p>
-            </div>
+            <h2>Namaste ${customerName},</h2>
+            <p>Aapka Order Successfully Place Ho Gaya Hai!</p>
+            <h3>Items:</h3>
+            <ul>${itemsList}</ul>
+            <p><b>Total Amount:</b> ₹${totalAmount}</p>
+            <p><b>Address:</b> ${shippingAddress}</p>
+            <br>
+            <p>ElectroMart Par Shopping Karne Ke Liye Dhanyawad!</p>
         `
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        return res.status(200).json({ 
-            success: true, 
-            message: 'Receipt aapke email par bhej di gayi hai!' 
-        });
+        console.log("Email Successfully Sent To:", customerEmail);
+        res.json({ success: true, message: "Order Placed & Confirmation Sent!" });
     } catch (error) {
-        console.error('Email error:', error);
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Email bhejne me issue aaya.', 
-            error: error.message 
-        });
+        console.error("Email Error Details:", error);
+        res.status(500).json({ success: false, message: "Email Nahi Bhej Paya." });
     }
 });
 
-// Catch-all Route (Frontend Fallback)
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Server Listen
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(5000, () => {
+    console.log("Server Running on http://localhost:5000");
 });
